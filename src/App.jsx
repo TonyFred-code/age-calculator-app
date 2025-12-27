@@ -1,5 +1,6 @@
 import { useState } from "react";
 import CountUp from "./components/countUp.jsx";
+import calculateAge from "./helpers/calculateAge.js";
 
 export default function App() {
   const [ageDetails, setAgeDetails] = useState({
@@ -16,39 +17,6 @@ export default function App() {
   const [monthError, setMonthError] = useState(null);
   const [yearError, setYearError] = useState(null);
 
-  function calculateAge(dob, today = new Date()) {
-    const birthDate = new Date(dob);
-
-    if (isNaN(birthDate)) {
-      throw new Error("Invalid date of birth");
-    }
-
-    let years = today.getFullYear() - birthDate.getFullYear();
-    let months = today.getMonth() - birthDate.getMonth();
-    let days = today.getDate() - birthDate.getDate();
-
-    // Borrow days from previous month
-    if (days < 0) {
-      months -= 1;
-
-      const prevMonth = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        0 // last day of previous month
-      );
-
-      days += prevMonth.getDate();
-    }
-
-    // Borrow months from previous year
-    if (months < 0) {
-      years -= 1;
-      months += 12;
-    }
-
-    return { years, months, days };
-  }
-
   function handleSubmit(event) {
     event.preventDefault();
     const form = event.target;
@@ -60,8 +28,6 @@ export default function App() {
       year = Number(formData.get("year"));
 
     let DOB = { years: -1, months: -1, days: -1 };
-
-    console.log("object", 62);
 
     const isValidForm = validateForm(day, month, year, form);
 
@@ -75,7 +41,7 @@ export default function App() {
     }
 
     try {
-      DOB = calculateAge(new Date(year, month - 1, day));
+      DOB = calculateAge(year, month, day);
     } catch (error) {
       if (error.message.match(/date/i)) {
         setAgeDetails(DOB);
