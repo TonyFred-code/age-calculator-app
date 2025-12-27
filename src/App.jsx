@@ -17,6 +17,8 @@ export default function App() {
   const [monthError, setMonthError] = useState(null);
   const [yearError, setYearError] = useState(null);
 
+  const emptyInputErrorMessage = "This field is required";
+
   function handleSubmit(event) {
     event.preventDefault();
     const form = event.target;
@@ -33,10 +35,19 @@ export default function App() {
 
     if (!isValidForm) {
       setAgeDetails(DOB);
-      setFormError("Must be a valid date");
-      setDayError(null);
-      setMonthError(null);
-      setYearError(null);
+
+      if (day === 0 && month === 0 && year === 0) {
+        // EMPTY FORM
+        setFormError(null);
+        setDayError(emptyInputErrorMessage);
+        setMonthError(emptyInputErrorMessage);
+        setYearError(emptyInputErrorMessage);
+      } else {
+        setFormError("Must be a valid date");
+        setDayError(null);
+        setMonthError(null);
+        setYearError(null);
+      }
       return;
     }
 
