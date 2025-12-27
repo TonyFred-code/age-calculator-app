@@ -320,7 +320,7 @@ export default function App() {
               htmlFor="month"
               className={`uppercase text-[10px] md:text-xs tracking-[.2rem] ${formError || monthError ? "text-red-400" : "text-grey-500"}`}
             >
-              Month
+              month
             </label>
             <input
               type="text"
@@ -370,7 +370,7 @@ export default function App() {
           <hr className="w-full h-1 text-grey-200" />
           <button
             type="submit"
-            className="rounded-full size-14 border-purple-500 hover:border- focus:bg-black active:border-black hover:bg-black active:bg-black bg-purple-500 flex items-center justify-center shrink-0 mx-auto md:order-last"
+            className="rounded-full size-14 border-purple-500 hover:border-black focus:bg-black active:border-black hover:bg-black active:bg-black bg-purple-500 flex items-center justify-center shrink-0 mx-auto md:order-last"
             form="age_form"
           >
             <span className="sr-only">Submit</span>
