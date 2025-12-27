@@ -11,6 +11,11 @@ export default function App() {
   const [day, setDay] = useState("");
   const [year, setYear] = useState("");
 
+  const [formError, setFormError] = useState(null);
+  const [dayError, setDayError] = useState(null);
+  const [monthError, setMonthError] = useState(null);
+  const [yearError, setYearError] = useState(null);
+
   function calculateAge(dob, today = new Date()) {
     const birthDate = new Date(dob);
 
@@ -54,8 +59,155 @@ export default function App() {
       month = Number(formData.get("month")),
       year = Number(formData.get("year"));
 
-    const DOB = calculateAge(new Date(year, month - 1, day));
+    let DOB = { years: -1, months: -1, days: -1 };
+
+    console.log("object", 62);
+
+    const isValidForm = validateForm(day, month, year, form);
+
+    if (!isValidForm) {
+      setAgeDetails(DOB);
+      setFormError("Must be a valid date");
+      setDayError(null);
+      setMonthError(null);
+      setYearError(null);
+      return;
+    }
+
+    try {
+      DOB = calculateAge(new Date(year, month - 1, day));
+    } catch (error) {
+      if (error.message.match(/date/i)) {
+        setAgeDetails(DOB);
+        setFormError("Must be a valid date");
+        setDayError(null);
+        setMonthError(null);
+        setYearError(null);
+        return;
+      }
+
+      throw error;
+    }
+
     setAgeDetails(DOB);
+    setFormError(null);
+    setDayError(null);
+    setMonthError(null);
+    setYearError(null);
+  }
+
+  function isLeapYear(year) {
+    if (year % 100 === 0 && year % 400 !== 0) {
+      return false;
+    } else if (year % 4 !== 0) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  function validateDay(day, month, year, dayInput) {
+    const errorMessages = {
+      empty: "This field is required",
+      outOfBounds: "Must be a valid day",
+    };
+    if (dayInput.value === "") {
+      return {
+        isValid: false,
+        errorMessage: errorMessages.empty,
+      };
+    }
+
+    let monthMaxDays;
+
+    if (!month) monthMaxDays = 31;
+    switch (month) {
+      case 4:
+      case 6:
+      case 9:
+      case 11:
+        monthMaxDays = 30;
+        break;
+      case 2:
+        monthMaxDays = isLeapYear(year) ? 29 : 28;
+        break;
+      default:
+        monthMaxDays = 31;
+        break;
+    }
+
+    if (day < 1 || day > monthMaxDays) {
+      return {
+        isValid: false,
+        errorMessage: errorMessages.outOfBounds,
+      };
+    }
+
+    return {
+      isValid: true,
+      errorMessages: "",
+    };
+  }
+
+  function validateMonth(month, monthInput) {
+    const errorMessages = {
+      empty: "This field is required",
+      outOfBounds: "Must be a valid month",
+    };
+    if (monthInput.value === "") {
+      return {
+        isValid: false,
+        errorMessage: errorMessages.empty,
+      };
+    }
+
+    if (month < 1 || month > 12) {
+      return {
+        isValid: false,
+        errorMessage: errorMessages.outOfBounds,
+      };
+    }
+
+    return {
+      isValid: true,
+      errorMessage: "",
+    };
+  }
+
+  function validateYear(year, yearInput) {
+    const errorMessages = {
+      empty: "This field is required",
+      outOfBounds: "Must be in the past",
+    };
+
+    if (yearInput.value === "") {
+      return {
+        isValid: false,
+        errorMessage: errorMessages.empty,
+      };
+    }
+
+    const currentYear = new Date().getFullYear();
+
+    if (currentYear < year) {
+      return {
+        isValid: false,
+        errorMessage: errorMessages.outOfBounds,
+      };
+    }
+
+    return {
+      isValid: true,
+      errorMessage: "",
+    };
+  }
+
+  function validateForm(day, month, year, form) {
+    const dayValidity = validateDay(day, month, year, form.day);
+    const monthValidity = validateMonth(month, form.month);
+    const yearValidity = validateYear(year, form.year);
+
+    return dayValidity.isValid && monthValidity.isValid && yearValidity.isValid;
   }
 
   function normalizeMonth() {
@@ -78,24 +230,78 @@ export default function App() {
   function updateDay(event) {
     const updatedDay = event.target.value.replace(/\D/g, "").slice(0, 2);
 
+    if (dayError || formError) {
+      setDayError(null);
+      setFormError(null);
+    }
     setDay(updatedDay);
   }
 
   function updateMonth(event) {
     const updatedMonth = event.target.value.replace(/\D/g, "").slice(0, 2);
 
+    if (monthError || formError) {
+      setMonthError(null);
+      setFormError(null);
+    }
     setMonth(updatedMonth);
   }
 
   function updateYear(event) {
     const updatedYear = event.target.value.replace(/\D/g, "").slice(0, 4);
 
+    if (yearError || formError) {
+      setYearError(null);
+      setFormError(null);
+    }
     setYear(updatedYear);
+  }
+
+  function handleDayInputBlur(event) {
+    normalizeDay();
+    const isValidDay = validateDay(
+      Number(day),
+      Number(month),
+      Number(year),
+      event.target
+    );
+
+    if (formError) setFormError(null);
+
+    if (isValidDay.isValid) {
+      setDayError(null);
+    } else {
+      setDayError(isValidDay.errorMessage);
+    }
+  }
+
+  function handleMonthInputBlur(event) {
+    normalizeMonth();
+
+    const isValidMonth = validateMonth(Number(month), event.target);
+
+    if (isValidMonth.isValid) {
+      setMonthError(null);
+    } else {
+      setMonthError(isValidMonth.errorMessage);
+    }
+  }
+
+  function handleYearInputBlur(event) {
+    normalizeYear();
+
+    const isValidYear = validateYear(Number(year), event.target);
+
+    if (isValidYear.isValid) {
+      setYearError(null);
+    } else {
+      setYearError(isValidYear.errorMessage);
+    }
   }
 
   return (
     <div className="min-h-screen bg-grey-100 flex items-center justify-center py-8 px-4">
-      <div className="bg-white rounded-2xl md:rounded-br-lg-half-pill rounded-br-half-pill p-6 max-w-lg md:max-w-xl space-y-6">
+      <div className="bg-white rounded-2xl md:rounded-br-lg-half-pill rounded-br-half-pill p-5 md:p-6 max-w-lg md:max-w-xl space-y-6">
         <form
           onSubmit={handleSubmit}
           id="age_form"
@@ -105,7 +311,7 @@ export default function App() {
           <div className="flex flex-col gap-2">
             <label
               htmlFor="day"
-              className="uppercase text-[10px] md:text-xs tracking-[.2rem] peer-invalid:text-red-400 text-grey-500"
+              className={`uppercase text-[10px] md:text-xs tracking-[.2rem] ${formError || dayError ? "text-red-400" : "text-grey-500"}`}
             >
               day
             </label>
@@ -117,15 +323,25 @@ export default function App() {
               value={day}
               pattern="[0-9]*"
               inputMode="numeric"
-              className="peer p-2 border-2 border-grey-200 focus:border-purple-500 outline-none text-xl rounded-md"
+              className={`peer p-2 border-2 focus:border-purple-500 outline-none text-xl rounded-md ${dayError || formError ? "border-red-400" : "border-grey-200"}`}
               onChange={updateDay}
-              onBlur={normalizeDay}
+              onBlur={handleDayInputBlur}
             />
+            {formError && (
+              <span className="text-[7px] md:text-xs italic text-red-400">
+                {formError}
+              </span>
+            )}
+            {dayError && (
+              <span className="text-[7px] md:text-xs italic text-red-400">
+                {dayError}
+              </span>
+            )}
           </div>
           <div className="flex flex-col gap-2">
             <label
               htmlFor="month"
-              className="uppercase text-[10px] md:text-xs tracking-[.2rem] peer-invalid:text-red-400 text-grey-500"
+              className={`uppercase text-[10px] md:text-xs tracking-[.2rem] ${formError || monthError ? "text-red-400" : "text-grey-500"}`}
             >
               Month
             </label>
@@ -138,14 +354,19 @@ export default function App() {
               placeholder="MM"
               value={month}
               onChange={updateMonth}
-              onBlur={normalizeMonth}
-              className="peer p-2 border-2 border-grey-200 focus:border-purple-500 outline-none text-xl rounded-md"
+              onBlur={handleMonthInputBlur}
+              className={`peer p-2 border-2 focus:border-purple-500 outline-none text-xl rounded-md ${monthError || formError ? "border-red-400" : "border-grey-200"}`}
             />
+            {monthError && (
+              <span className="text-[7px] md:text-xs italic text-red-400">
+                {monthError}
+              </span>
+            )}
           </div>
           <div className="flex flex-col gap-2">
             <label
               htmlFor="year"
-              className="uppercase text-[10px] md:text-xs tracking-[.2rem] peer-invalid:text-red-400 text-grey-500"
+              className={`uppercase text-[10px] md:text-xs tracking-[.2rem] ${formError || yearError ? "text-red-400" : "text-grey-500"}`}
             >
               year
             </label>
@@ -158,9 +379,14 @@ export default function App() {
               placeholder="YYYY"
               value={year}
               onChange={updateYear}
-              onBlur={normalizeYear}
-              className="peer p-2 border-2 border-grey-200 focus:border-purple-500 outline-none text-xl rounded-md"
+              onBlur={handleYearInputBlur}
+              className={`peer p-2 border-2 focus:border-purple-500 outline-none text-xl rounded-md ${yearError || formError ? "border-red-400" : "border-grey-200"}`}
             />
+            {yearError && (
+              <span className="text-[7px] md:text-xs italic text-red-400">
+                {yearError}
+              </span>
+            )}
           </div>
         </form>
         <div className="flex items-center justify-center">
@@ -208,10 +434,10 @@ export default function App() {
           <p>
             {ageDetails.days > -1 ? (
               <CountUp
-                to={ageDetails.months}
+                to={ageDetails.days}
                 from={0}
                 duration={1.2}
-                startWhen={ageDetails.months > 0}
+                startWhen={ageDetails.days > 0}
                 className="text-purple-500"
               />
             ) : (
