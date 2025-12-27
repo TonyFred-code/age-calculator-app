@@ -97,7 +97,6 @@ export default function App() {
 
     let monthMaxDays;
 
-    if (!month) monthMaxDays = 31;
     switch (month) {
       case 4:
       case 6:
