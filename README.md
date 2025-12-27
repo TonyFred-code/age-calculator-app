@@ -38,8 +38,8 @@ Solution Built:
 
 ### Links
 
-- Solution URL: [GitHub Source Code](https://github.com/TonyFred-code/results-summary-component/)
-- Live Site URL: [Vercel Deployed Demo](https://results-summary-component-omega-neon.vercel.app/)
+- Solution URL: [GitHub Source Code](https://github.com/TonyFred-code/age-calculator-app/)
+- Live Site URL: [Vercel Deployed Demo](https://age-calculator-app-six-wine.vercel.app/)
 
 ## Built with
 
